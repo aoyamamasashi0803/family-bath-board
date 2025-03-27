@@ -8,8 +8,17 @@
   <meta name="CocoaVersion" content="2575.4">
   <style type="text/css">
     p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000; min-height: 15.0px}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Courier; color: #061539; color: rgba(6, 21, 57, 0.7); -webkit-text-stroke: rgba(6, 21, 57, 0.7)}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Courier; -webkit-text-stroke: #000000}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000; min-height: 14.0px}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Hiragino Sans'; -webkit-text-stroke: #000000}
     span.s1 {font-kerning: none}
+    span.s2 {font: 12.0px 'Hiragino Sans'; font-kerning: none}
+    span.s3 {font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
+    span.s4 {font-kerning: none; color: rgba(6, 21, 57, 0.7); -webkit-text-stroke: 0px rgba(6, 21, 57, 0.7)}
+    span.s5 {font: 14.0px Courier; font-kerning: none; color: rgba(6, 21, 57, 0.7); -webkit-text-stroke: 0px rgba(6, 21, 57, 0.7)}
+    span.s6 {font: 12.0px 'Helvetica Neue'; font-kerning: none}
+    span.s7 {font: 12.0px 'Lucida Grande'; font-kerning: none}
   </style>
 </head>
 <body>
@@ -18,7 +27,7 @@
 <p class="p1"><span class="s1">&lt;head&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;お風呂掲示板&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;</span><span class="s2">お風呂掲示板</span><span class="s1">&lt;/title&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- React, ReactDOM, Babel --&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;</span></p>
@@ -31,65 +40,64 @@
 <p class="p1"><span class="s1">&lt;/head&gt;</span></p>
 <p class="p1"><span class="s1">&lt;body&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="root"&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- App.jsを直接インラインで記述します --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- App.js</span><span class="s2">を直接インラインで記述します</span><span class="s1"> --&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script type="text/babel"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase設定</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const firebaseConfig = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ここにFirebaseコンソールからコピーした設定を貼り付け</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>apiKey: "YOUR_API_KEY",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>authDomain: "family-bath-board.firebaseapp.com",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>projectId: "family-bath-board",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>storageBucket: "family-bath-board.appspot.com",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>messagingSenderId: "YOUR_MESSAGING_SENDER_ID",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>appId: "YOUR_APP_ID"</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebaseの初期化</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase</span><span class="s2">設定</span></p>
+<p class="p2"><span class="s3">const</span><span class="s1"> firebaseConfig = {</span></p>
+<p class="p3"><span class="s4">  apiKey: </span><span class="s1">"AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws"</span><span class="s4">,</span></p>
+<p class="p3"><span class="s4">  authDomain: </span><span class="s1">"family-bath-board.firebaseapp.com"</span><span class="s4">,</span></p>
+<p class="p3"><span class="s4">  databaseURL: </span><span class="s1">"https://family-bath-board-default-rtdb.firebaseio.com"</span><span class="s4">,</span></p>
+<p class="p3"><span class="s4">  projectId: </span><span class="s1">"family-bath-board"</span><span class="s4">,</span></p>
+<p class="p3"><span class="s4">  storageBucket: </span><span class="s1">"family-bath-board.firebasestorage.app"</span><span class="s4">,</span></p>
+<p class="p2"><span class="s1">  messagingSenderId: </span><span class="s3">"302137992718"</span><span class="s1">,</span></p>
+<p class="p3"><span class="s4">  appId: </span><span class="s1">"1:302137992718:web:6be7da1e5e4343a197be5f"</span><span class="s4">,</span></p>
+<p class="p2"><span class="s1">  measurementId: </span><span class="s3">"G-380QXLYTXP"</span></p>
+<p class="p1"><span class="s5">};</span><span class="s1"> <span class="Apple-converted-space">   </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase</span><span class="s2">の初期化</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>firebase.initializeApp(firebaseConfig);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const database = firebase.database();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const MinimalBathApp = () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 現在の日付を取得する関数</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const familyMembers = ['</span><span class="s2">お父さん</span><span class="s1">', '</span><span class="s2">お母さん</span><span class="s1">', '</span><span class="s2">カイ</span><span class="s1">', '</span><span class="s2">ササ</span><span class="s1">'];</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">      </span>// </span><span class="s1">現在の日付を取得する関数</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getCurrentDate = () =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekdays = ['日', '月', '火', '水', '木', '金', '土'];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekdays = ['</span><span class="s2">日</span><span class="s1">', '</span><span class="s2">月</span><span class="s1">', '</span><span class="s2">火</span><span class="s1">', '</span><span class="s2">水</span><span class="s1">', '</span><span class="s2">木</span><span class="s1">', '</span><span class="s2">金</span><span class="s1">', '</span><span class="s2">土</span><span class="s1">'];</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekday = weekdays[now.getDay()];</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>date: `${now.getFullYear()}</span><span class="s2">年</span><span class="s1">${(now.getMonth() + 1).toString().padStart(2, '0')}</span><span class="s2">月</span><span class="s1">${now.getDate().toString().padStart(2, '0')}</span><span class="s2">日（</span><span class="s1">${weekday}</span><span class="s2">）</span><span class="s1">`,</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>weekday: weekday</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 状態管理</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">状態管理</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [currentDate, setCurrentDate] = React.useState(getCurrentDate());</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [checks, setChecks] = React.useState(</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {})</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [memo, setMemo] = React.useState('');</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [isLoading, setIsLoading] = React.useState(true);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 曜日ごとの当番</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">曜日ごとの当番</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const dutySchedule = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'金': 'カイ', '土': 'カイ', '日': 'ササ'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'</span><span class="s2">月</span><span class="s1">': '</span><span class="s2">カイ</span><span class="s1">', '</span><span class="s2">火</span><span class="s1">': '</span><span class="s2">ササ</span><span class="s1">', '</span><span class="s2">水</span><span class="s1">': '</span><span class="s2">ササ</span><span class="s1">', '</span><span class="s2">木</span><span class="s1">': '</span><span class="s2">ササ</span><span class="s1">',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'</span><span class="s2">金</span><span class="s1">': '</span><span class="s2">カイ</span><span class="s1">', '</span><span class="s2">土</span><span class="s1">': '</span><span class="s2">カイ</span><span class="s1">', '</span><span class="s2">日</span><span class="s1">': '</span><span class="s2">ササ</span><span class="s1">'</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// Firebaseからデータを取得する</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// Firebase</span><span class="s2">からデータを取得する</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[</span><span class="s2">年月日（）</span><span class="s1">]/g, '');</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const bathRef = database.ref(`bath-check/${todayKey}`);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>bathRef.on('value', (snapshot) =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const data = snapshot.val();</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (data) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// データが存在する場合はロード</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// </span><span class="s2">データが存在する場合はロード</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setChecks(data.checks || familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}));</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setMemo(data.memo || '');</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} else {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// データが存在しない場合は初期化して保存</span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">            </span>// </span><span class="s1">データが存在しない場合は初期化して保存</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const initialData = {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>date: currentDate.date,</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>weekday: currentDate.weekday,</span></p>
@@ -100,29 +108,29 @@
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setIsLoading(false);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// クリーンアップ関数</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// </span><span class="s2">クリーンアップ関数</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return () =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>bathRef.off();</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [currentDate]);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態をFirebaseに保存</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">チェック状態を</span><span class="s1">Firebase</span><span class="s2">に保存</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateCheck = (member) =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[</span><span class="s2">年月日（）</span><span class="s1">]/g, '');</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const newChecks = {...checks, [member]: !checks[member]};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setChecks(newChecks);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>database.ref(`bath-check/${todayKey}/checks`).set(newChecks);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// メモをFirebaseに保存</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">メモを</span><span class="s1">Firebase</span><span class="s2">に保存</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateMemo = (text) =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setMemo(text);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[</span><span class="s2">年月日（）</span><span class="s1">]/g, '');</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>database.ref(`bath-check/${todayKey}/memo`).set(text);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 自動リセット機能（午前3時）</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">      </span>// </span><span class="s1">自動リセット機能（午前</span><span class="s6">3</span><span class="s1">時）</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const checkAndResetData = () =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const newDate = getCurrentDate();</span></p>
@@ -130,93 +138,93 @@
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setCurrentDate(newDate);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 初回チェック</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// </span><span class="s2">初回チェック</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>checkAndResetData();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 次の午前3時までの時間を計算</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">        </span>// </span><span class="s1">次の午前</span><span class="s6">3</span><span class="s1">時までの時間を計算</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const resetTime = new Date();</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>resetTime.setHours(3, 0, 0, 0);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// すでに3時を過ぎていたら翌日の3時に設定</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">        </span>// </span><span class="s1">すでに</span><span class="s6">3</span><span class="s1">時を過ぎていたら翌日の</span><span class="s6">3</span><span class="s1">時に設定</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (now.getHours() &gt;= 3) {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>resetTime.setDate(resetTime.getDate() + 1);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timeUntilReset = resetTime - now;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// タイマーセット</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// </span><span class="s2">タイマーセット</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timer = setTimeout(() =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>checkAndResetData();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// 以降は24時間ごとにリセット</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// </span><span class="s2">以降は</span><span class="s1">24</span><span class="s2">時間ごとにリセット</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return () =&gt; clearInterval(dailyTimer);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}, timeUntilReset);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return () =&gt; clearTimeout(timer);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [currentDate]);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態を評価</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// </span><span class="s2">チェック状態を評価</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const checkedCount = Object.values(checks).filter(c =&gt; c).length;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const allChecked = checkedCount === familyMembers.length;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const isLastPerson = checkedCount === familyMembers.length - 1;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const noOneChecked = checkedCount === 0;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ステータスメッセージとスタイルを取得</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p5"><span class="s6"><span class="Apple-converted-space">      </span>// </span><span class="s1">ステータスメッセージとスタイルを取得</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getStatusInfo = () =&gt; {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (allChecked) {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '全員お風呂に入りました！',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '</span><span class="s2">全員お風呂に入りました！</span><span class="s1">',</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-green-100 border-green-300'</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (isLastPerson) {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'あなたが最後です。お湯を抜いてください。',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '</span><span class="s2">あなたが最後です。お湯を抜いてください。</span><span class="s1">',</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-yellow-100 border-yellow-300'</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (noOneChecked) {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだ誰もお風呂入っていません',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '</span><span class="s2">まだ誰もお風呂入っていません</span><span class="s1">',</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-gray-100 border-gray-300'</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだお風呂入っていない家族がいます',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '</span><span class="s2">まだお風呂入っていない家族がいます</span><span class="s1">',</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-blue-100 border-blue-300'</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const { message, style } = getStatusInfo();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (isLoading) {</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return (</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50 flex items-center justify-center h-screen"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-lg text-blue-700"&gt;読み込み中...&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-lg text-blue-700"&gt;</span><span class="s2">読み込み中</span><span class="s1">...&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return (</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50"&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-blue-600 text-white p-4 rounded-t-lg"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1 className="text-xl text-center font-bold"&gt;お風呂掲示板&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1 className="text-xl text-center font-bold"&gt;</span><span class="s2">お風呂掲示板</span><span class="s1">&lt;/h1&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm"&gt;{currentDate.date}&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm mt-1"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>今日の風呂掃除当番: &lt;span className="font-bold"&gt;{dutySchedule[currentDate.weekday]}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span></span><span class="s2">今日の風呂掃除当番</span><span class="s1">: &lt;span className="font-bold"&gt;{dutySchedule[currentDate.weekday]}&lt;/span&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-white p-4 rounded-b-lg shadow"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* ステータス表示 */}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* </span><span class="s2">ステータス表示</span><span class="s1"> */}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className={`p-3 rounded mb-4 border ${style}`}&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium"&gt;{message}&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* お風呂チェック */}</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* </span><span class="s2">お風呂チェック</span><span class="s1"> */}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="mb-4 p-3 border rounded bg-gray-50"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;お風呂チェック&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;</span><span class="s2">お風呂チェック</span><span class="s1">&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{familyMembers.map(member =&gt; (</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div<span class="Apple-converted-space"> </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>key={member}<span class="Apple-converted-space"> </span></span></p>
@@ -230,25 +238,25 @@
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span&gt;{member}&lt;/span&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span className="h-6 w-6 flex items-center justify-center border rounded-full"<span class="Apple-converted-space"> </span></span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{checks[member] &amp;&amp; '✓'}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{checks[member] &amp;&amp; '</span><span class="s7">✓</span><span class="s1">'}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/span&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>))}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* メモ */}</span></p>
+<p class="p4"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* </span><span class="s2">メモ</span><span class="s1"> */}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="p-3 border rounded bg-gray-50"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;一言メモ&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;</span><span class="s2">一言メモ</span><span class="s1">&lt;/p&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;textarea</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>className="w-full p-2 border rounded text-sm"</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>rows={2}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>placeholder="メモを記入してください..."</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>placeholder="</span><span class="s2">メモを記入してください</span><span class="s1">..."</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>value={memo}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>onChange={(e) =&gt; updateMemo(e.target.value)}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>/&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{memo &amp;&amp; (</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>「{memo}」</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span></span><span class="s2">「</span><span class="s1">{memo}</span><span class="s2">」</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>)}</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
@@ -256,7 +264,7 @@
 <p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>);</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p2"><span class="s1"></span><br></p>
+<p class="p4"><span class="s1"></span><br></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>ReactDOM.render(&lt;MinimalBathApp /&gt;, document.getElementById('root'));</span></p>
 <p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
 <p class="p1"><span class="s1">&lt;/body&gt;</span></p>
