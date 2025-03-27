@@ -1,265 +1,248 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000; min-height: 14.0px}
-    span.s1 {font-kerning: none}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お風呂掲示板</title>
+  <!-- React, ReactDOM, Babel -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="ja"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;お風呂掲示板&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- React, ReactDOM, Babel --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- Firebase SDK --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- Tailwind CSS --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="root"&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- App.jsを直接インラインで記述します --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script type="text/babel"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase設定</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const firebaseConfig = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>apiKey: "AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>authDomain: "family-bath-board.firebaseapp.com",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>projectId: "family-bath-board",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>storageBucket: "family-bath-board.firebasestorage.app",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>messagingSenderId: "302137992718",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>appId: "1:302137992718:web:6be7da1e5e4343a197be5f",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>measurementId: "G-380QXLYTXP"</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebaseの初期化</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>firebase.initializeApp(firebaseConfig);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const database = firebase.database();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const MinimalBathApp = () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 現在の日付を取得する関数</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getCurrentDate = () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekdays = ['日', '月', '火', '水', '木', '金', '土'];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekday = weekdays[now.getDay()];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>weekday: weekday</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 状態管理</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [currentDate, setCurrentDate] = React.useState(getCurrentDate());</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [checks, setChecks] = React.useState(</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {})</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [memo, setMemo] = React.useState('');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [isLoading, setIsLoading] = React.useState(true);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 曜日ごとの当番</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const dutySchedule = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'金': 'カイ', '土': 'カイ', '日': 'ササ'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// Firebaseからデータを取得する</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const bathRef = database.ref(`bath-check/${todayKey}`);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>bathRef.on('value', (snapshot) =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const data = snapshot.val();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (data) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// データが存在する場合はロード</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setChecks(data.checks || familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}));</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setMemo(data.memo || '');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} else {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// データが存在しない場合は初期化して保存</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const initialData = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>date: currentDate.date,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>weekday: currentDate.weekday,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>checks: familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>memo: ''</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>bathRef.set(initialData);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setIsLoading(false);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// クリーンアップ関数</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>bathRef.off();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [currentDate]);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態をFirebaseに保存</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateCheck = (member) =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const newChecks = {...checks, [member]: !checks[member]};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setChecks(newChecks);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>database.ref(`bath-check/${todayKey}/checks`).set(newChecks);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// メモをFirebaseに保存</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateMemo = (text) =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setMemo(text);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const todayKey = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>database.ref(`bath-check/${todayKey}/memo`).set(text);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 自動リセット機能（午前3時）</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const checkAndResetData = () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const newDate = getCurrentDate();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (newDate.date !== currentDate.date) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setCurrentDate(newDate);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 初回チェック</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>checkAndResetData();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 次の午前3時までの時間を計算</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const resetTime = new Date();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>resetTime.setHours(3, 0, 0, 0);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// すでに3時を過ぎていたら翌日の3時に設定</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (now.getHours() &gt;= 3) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>resetTime.setDate(resetTime.getDate() + 1);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timeUntilReset = resetTime - now;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// タイマーセット</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timer = setTimeout(() =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>checkAndResetData();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// 以降は24時間ごとにリセット</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return () =&gt; clearInterval(dailyTimer);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}, timeUntilReset);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return () =&gt; clearTimeout(timer);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [currentDate]);</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態を評価</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const checkedCount = Object.values(checks).filter(c =&gt; c).length;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const allChecked = checkedCount === familyMembers.length;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const isLastPerson = checkedCount === familyMembers.length - 1;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const noOneChecked = checkedCount === 0;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ステータスメッセージとスタイルを取得</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getStatusInfo = () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (allChecked) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '全員お風呂に入りました！',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-green-100 border-green-300'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (isLastPerson) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'あなたが最後です。お湯を抜いてください。',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-yellow-100 border-yellow-300'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (noOneChecked) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだ誰もお風呂入っていません',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-gray-100 border-gray-300'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだお風呂入っていない家族がいます',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-blue-100 border-blue-300'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const { message, style } = getStatusInfo();</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (isLoading) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return (</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50 flex items-center justify-center h-screen"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-lg text-blue-700"&gt;読み込み中...&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return (</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-blue-600 text-white p-4 rounded-t-lg"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1 className="text-xl text-center font-bold"&gt;お風呂掲示板&lt;/h1&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm"&gt;{currentDate.date}&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm mt-1"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>今日の風呂掃除当番: &lt;span className="font-bold"&gt;{dutySchedule[currentDate.weekday]}&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-white p-4 rounded-b-lg shadow"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* ステータス表示 */}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className={`p-3 rounded mb-4 border ${style}`}&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium"&gt;{message}&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* お風呂チェック */}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="mb-4 p-3 border rounded bg-gray-50"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;お風呂チェック&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{familyMembers.map(member =&gt; (</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div<span class="Apple-converted-space"> </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>key={member}<span class="Apple-converted-space"> </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>className="flex items-center justify-between p-2 mb-2 border rounded cursor-pointer"</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>style={{<span class="Apple-converted-space"> </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>backgroundColor: checks[member] ? '#d1fae5' : 'white',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>borderColor: checks[member] ? '#10b981' : '#e5e7eb'</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>}}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>onClick={() =&gt; updateCheck(member)}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span&gt;{member}&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span className="h-6 w-6 flex items-center justify-center border rounded-full"<span class="Apple-converted-space"> </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{checks[member] &amp;&amp; '✓'}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>))}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* メモ */}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="p-3 border rounded bg-gray-50"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;一言メモ&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;textarea</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>className="w-full p-2 border rounded text-sm"</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>rows={2}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>placeholder="メモを記入してください..."</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>value={memo}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>onChange={(e) =&gt; updateMemo(e.target.value)}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{memo &amp;&amp; (</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>「{memo}」</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>)}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>ReactDOM.render(&lt;MinimalBathApp /&gt;, document.getElementById('root'));</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+  <div id="root"></div>
+  <!-- App.jsを直接インラインで記述します -->
+  <script type="text/babel">
+    // Firebase設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws",
+      authDomain: "family-bath-board.firebaseapp.com",
+      databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",
+      projectId: "family-bath-board",
+      storageBucket: "family-bath-board.firebasestorage.app",
+      messagingSenderId: "302137992718",
+      appId: "1:302137992718:web:6be7da1e5e4343a197be5f",
+      measurementId: "G-380QXLYTXP"
+    };
+    
+    // Firebaseの初期化
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    const MinimalBathApp = () => {
+      const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];
+      
+      // 現在の日付を取得する関数
+      const getCurrentDate = () => {
+        const now = new Date();
+        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+        const weekday = weekdays[now.getDay()];
+        return {
+          date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,
+          weekday: weekday
+        };
+      };
+      
+      // 状態管理
+      const [currentDate, setCurrentDate] = React.useState(getCurrentDate());
+      const [checks, setChecks] = React.useState(
+        familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {})
+      );
+      const [memo, setMemo] = React.useState('');
+      const [isLoading, setIsLoading] = React.useState(true);
+      
+      // 曜日ごとの当番
+      const dutySchedule = {
+        '月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',
+        '金': 'カイ', '土': 'カイ', '日': 'ササ'
+      };
+      
+      // Firebaseからデータを取得する
+      React.useEffect(() => {
+        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+        const bathRef = database.ref(`bath-check/${todayKey}`);
+        
+        bathRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            // データが存在する場合はロード
+            setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
+            setMemo(data.memo || '');
+          } else {
+            // データが存在しない場合は初期化して保存
+            const initialData = {
+              date: currentDate.date,
+              weekday: currentDate.weekday,
+              checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
+              memo: ''
+            };
+            bathRef.set(initialData);
+          }
+          setIsLoading(false);
+        });
+        
+        // クリーンアップ関数
+        return () => {
+          bathRef.off();
+        };
+      }, [currentDate]);
+      
+      // チェック状態をFirebaseに保存
+      const updateCheck = (member) => {
+        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+        const newChecks = {...checks, [member]: !checks[member]};
+        setChecks(newChecks);
+        database.ref(`bath-check/${todayKey}/checks`).set(newChecks);
+      };
+      
+      // メモをFirebaseに保存
+      const updateMemo = (text) => {
+        setMemo(text);
+        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+        database.ref(`bath-check/${todayKey}/memo`).set(text);
+      };
+      
+      // 自動リセット機能（午前3時）
+      React.useEffect(() => {
+        const checkAndResetData = () => {
+          const newDate = getCurrentDate();
+          if (newDate.date !== currentDate.date) {
+            setCurrentDate(newDate);
+          }
+        };
+        
+        // 初回チェック
+        checkAndResetData();
+        
+        // 次の午前3時までの時間を計算
+        const now = new Date();
+        const resetTime = new Date();
+        resetTime.setHours(3, 0, 0, 0);
+        
+        // すでに3時を過ぎていたら翌日の3時に設定
+        if (now.getHours() >= 3) {
+          resetTime.setDate(resetTime.getDate() + 1);
+        }
+        
+        const timeUntilReset = resetTime - now;
+        
+        // タイマーセット
+        const timer = setTimeout(() => {
+          checkAndResetData();
+          // 以降は24時間ごとにリセット
+          const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);
+          return () => clearInterval(dailyTimer);
+        }, timeUntilReset);
+        
+        return () => clearTimeout(timer);
+      }, [currentDate]);
+      
+      // チェック状態を評価
+      const checkedCount = Object.values(checks).filter(c => c).length;
+      const allChecked = checkedCount === familyMembers.length;
+      const isLastPerson = checkedCount === familyMembers.length - 1;
+      const noOneChecked = checkedCount === 0;
+      
+      // ステータスメッセージとスタイルを取得
+      const getStatusInfo = () => {
+        if (allChecked) {
+          return {
+            message: '全員お風呂に入りました！',
+            style: 'bg-green-100 border-green-300'
+          };
+        } else if (isLastPerson) {
+          return {
+            message: 'あなたが最後です。お湯を抜いてください。',
+            style: 'bg-yellow-100 border-yellow-300'
+          };
+        } else if (noOneChecked) {
+          return {
+            message: 'まだ誰もお風呂入っていません',
+            style: 'bg-gray-100 border-gray-300'
+          };
+        } else {
+          return {
+            message: 'まだお風呂入っていない家族がいます',
+            style: 'bg-blue-100 border-blue-300'
+          };
+        }
+      };
+      
+      const { message, style } = getStatusInfo();
+      
+      if (isLoading) {
+        return (
+          <div className="p-4 max-w-md mx-auto bg-blue-50 flex items-center justify-center h-screen">
+            <p className="text-lg text-blue-700">読み込み中...</p>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="p-4 max-w-md mx-auto bg-blue-50">
+          <div className="bg-blue-600 text-white p-4 rounded-t-lg">
+            <h1 className="text-xl text-center font-bold">お風呂掲示板</h1>
+            <p className="text-center text-sm">{currentDate.date}</p>
+            <p className="text-center text-sm mt-1">
+              今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
+            </p>
+          </div>
+          
+          <div className="bg-white p-4 rounded-b-lg shadow">
+            {/* ステータス表示 */}
+            <div className={`p-3 rounded mb-4 border ${style}`}>
+              <p className="font-medium">{message}</p>
+            </div>
+            
+            {/* お風呂チェック */}
+            <div className="mb-4 p-3 border rounded bg-gray-50">
+              <p className="font-medium mb-2">お風呂チェック</p>
+              {familyMembers.map(member => (
+                <div 
+                  key={member} 
+                  className="flex items-center justify-between p-2 mb-2 border rounded cursor-pointer"
+                  style={{ 
+                    backgroundColor: checks[member] ? '#d1fae5' : 'white',
+                    borderColor: checks[member] ? '#10b981' : '#e5e7eb'
+                  }}
+                  onClick={() => updateCheck(member)}
+                >
+                  <span>{member}</span>
+                  <span className="h-6 w-6 flex items-center justify-center border rounded-full" 
+                    style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}>
+                    {checks[member] && '✓'}
+                  </span>
+                </div>
+              ))}
+            </div>
+            
+            {/* メモ */}
+            <div className="p-3 border rounded bg-gray-50">
+              <p className="font-medium mb-2">一言メモ</p>
+              <textarea
+                className="w-full p-2 border rounded text-sm"
+                rows={2}
+                placeholder="メモを記入してください..."
+                value={memo}
+                onChange={(e) => updateMemo(e.target.value)}
+              />
+              {memo && (
+                <div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300">
+                  「{memo}」
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<MinimalBathApp />, document.getElementById('root'));
+  </script>
 </body>
 </html>
