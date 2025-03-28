@@ -1,921 +1,464 @@
 <!DOCTYPE html>
-
 <html lang="ja">
-
 <head>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>お風呂掲示板</title>
-
   <!-- React, ReactDOM, Babel -->
-
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
   <!-- Firebase SDK (v8.x - より安定したバージョン) -->
-
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <!-- Tailwind CSS -->
-
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
 </head>
-
 <body>
-
   <div id="root"></div>
-
   <script type="text/babel">
-
     // Firebase設定
-
     const firebaseConfig = {
-
       apiKey: "AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws",
-
       authDomain: "family-bath-board.firebaseapp.com",
-
       databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",
-
       projectId: "family-bath-board",
-
       storageBucket: "family-bath-board.firebasestorage.app",
-
       messagingSenderId: "302137992718",
-
       appId: "1:302137992718:web:6be7da1e5e4343a197be5f",
-
       measurementId: "G-380QXLYTXP"
-
     };
-
     
-
     // Firebase接続テスト
-
     console.log("Firebase接続テスト開始");
-
     
-
     // Firebaseの初期化
-
     let firebaseApp;
-
     try {
-
       if (!firebase.apps.length) {
-
         firebaseApp = firebase.initializeApp(firebaseConfig);
-
         console.log("Firebase初期化成功");
-
       } else {
-
         firebaseApp = firebase.app();
-
         console.log("既存のFirebaseアプリを使用");
-
       }
-
     } catch (error) {
-
       console.error("Firebase初期化エラー:", error);
-
     }
-
     
-
     // Firebase接続テスト用関数
-
     const testFirebaseConnection = async () => {
-
       try {
-
         // シンプルなテストデータの書き込み
-
         const testRef = firebase.database().ref('connection-test');
-
         await testRef.set({
-
           timestamp: Date.now(),
-
           message: "Connection test"
-
         });
-
         console.log("Firebaseテスト書き込み成功");
-
         return true;
-
       } catch (error) {
-
         console.error("Firebaseテスト書き込みエラー:", error);
-
         return false;
-
       }
-
     };
-
     
-
     const MinimalBathApp = () => {
-
       const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];
-
       
-
       // 現在の日付を取得する関数
-
       const getCurrentDate = () => {
-
         const now = new Date();
-
         const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-
         const weekday = weekdays[now.getDay()];
-
         return {
-
           date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,
-
           weekday: weekday
-
         };
-
       };
-
       
-
       // ローカルストレージからのフォールバック
-
       const getLocalData = () => {
-
         try {
-
           const storedData = localStorage.getItem('bathData');
-
           if (storedData) {
-
             return JSON.parse(storedData);
-
           }
-
         } catch (e) {
-
           console.error("ローカルストレージ読み込みエラー:", e);
-
         }
-
         return {
-
           checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
-
           memo: ''
-
         };
-
       };
-
       
-
       // 状態管理
-
       const [currentDate, setCurrentDate] = React.useState(getCurrentDate());
-
       const [checks, setChecks] = React.useState(getLocalData().checks || {});
-
       const [memo, setMemo] = React.useState(getLocalData().memo || '');
-
       const [isLoading, setIsLoading] = React.useState(true);
-
       const [connectionMode, setConnectionMode] = React.useState('checking');
-
       const [connectionStatus, setConnectionStatus] = React.useState('初期化中...');
-
       
-
       // 曜日ごとの当番
-
       const dutySchedule = {
-
         '月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',
-
         '金': 'カイ', '土': 'カイ', '日': 'ササ'
-
       };
-
       
-
       // Firebase接続試行（10秒タイムアウトに延長）
-
       React.useEffect(() => {
-
         let timeoutId;
-
         try {
-
           console.log("Firebase接続試行開始");
-
           setConnectionStatus("Firebase接続試行中...");
-
           
-
           // まず書き込みテストを実行
-
           testFirebaseConnection().then(success => {
-
             if (success) {
-
               setConnectionMode('firebase');
-
               setConnectionStatus("Firebase接続成功！");
-
               initializeFirebaseData();
-
               if (timeoutId) clearTimeout(timeoutId);
-
             } else {
-
               setConnectionMode('local');
-
               setConnectionStatus("Firebaseへの書き込みに失敗");
-
               setIsLoading(false);
-
               if (timeoutId) clearTimeout(timeoutId);
-
             }
-
           });
-
           
-
           // 接続状態も監視
-
           const connectRef = firebase.database().ref(".info/connected");
-
           connectRef.on("value", (snap) => {
-
             const connected = snap.val() === true;
-
             console.log("Firebase接続状態:", connected ? "接続済み" : "未接続");
-
             setConnectionStatus(connected ? "Firebase接続済み" : "Firebase未接続");
-
             
-
             if (connected && connectionMode === 'checking') {
-
               // 接続されたがまだモード切り替えがない場合は少し待つ
-
               console.log("Firebase接続検出、データロード待機中...");
-
             }
-
           });
-
           
-
           // 10秒後にタイムアウト
-
           timeoutId = setTimeout(() => {
-
             if (connectionMode === 'checking') {
-
               console.log("Firebase接続タイムアウト - ローカルモードに切り替え");
-
               setConnectionStatus("Firebase接続タイムアウト");
-
               setConnectionMode('local');
-
               setIsLoading(false);
-
             }
-
           }, 10000);
-
           
-
           return () => {
-
             if (timeoutId) clearTimeout(timeoutId);
-
             connectRef.off("value");
-
           };
-
         } catch (error) {
-
           console.error("Firebase接続エラー:", error);
-
           setConnectionStatus(`Firebase接続エラー: ${error.message}`);
-
           setConnectionMode('local');
-
           setIsLoading(false);
-
           if (timeoutId) clearTimeout(timeoutId);
-
         }
-
       }, []);
-
       
-
       // Firebaseデータ初期化
-
       const initializeFirebaseData = () => {
-
         try {
-
           console.log("Firebaseデータ初期化開始");
-
           const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-
           const bathRef = firebase.database().ref(`bath-check/${dateStr}`);
-
           
-
           bathRef.once("value").then((snapshot) => {
-
             const data = snapshot.val();
-
             console.log("Firebaseデータ取得:", data);
-
             
-
             if (data) {
-
               console.log("既存データ使用");
-
               setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
-
               setMemo(data.memo || '');
-
             } else {
-
               console.log("新規データ作成");
-
               const initialData = {
-
                 date: currentDate.date,
-
                 weekday: currentDate.weekday,
-
                 checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
-
                 memo: ''
-
               };
-
               bathRef.set(initialData)
-
                 .then(() => console.log("初期データ保存成功"))
-
                 .catch(err => console.error("初期データ保存エラー:", err));
-
               
-
               setChecks(initialData.checks);
-
               setMemo(initialData.memo);
-
             }
-
             setIsLoading(false);
-
             
-
             // リアルタイム更新のリスナー設定
-
             setupRealtimeListeners();
-
           }).catch(error => {
-
             console.error("Firebaseデータ取得エラー:", error);
-
             setConnectionStatus(`データ取得エラー: ${error.message}`);
-
             setConnectionMode('local');
-
             setIsLoading(false);
-
           });
-
         } catch (error) {
-
           console.error("Firebaseデータ初期化エラー:", error);
-
           setConnectionStatus(`データ初期化エラー: ${error.message}`);
-
           setConnectionMode('local');
-
           setIsLoading(false);
-
         }
-
       };
-
       
-
       // リアルタイム更新リスナー
-
       const setupRealtimeListeners = () => {
-
         try {
-
           console.log("リアルタイムリスナー設定");
-
           const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-
           const checksRef = firebase.database().ref(`bath-check/${dateStr}/checks`);
-
           const memoRef = firebase.database().ref(`bath-check/${dateStr}/memo`);
-
           
-
           checksRef.on("value", (snapshot) => {
-
             const data = snapshot.val();
-
             console.log("リアルタイム更新 (checks):", data);
-
             if (data) {
-
               setChecks(data);
-
             }
-
           }, (error) => {
-
             console.error("チェック更新監視エラー:", error);
-
           });
-
           
-
           memoRef.on("value", (snapshot) => {
-
             const data = snapshot.val();
-
             console.log("リアルタイム更新 (memo):", data);
-
             if (data !== null) {
-
               setMemo(data);
-
             }
-
           }, (error) => {
-
             console.error("メモ更新監視エラー:", error);
-
           });
-
         } catch (error) {
-
           console.error("リアルタイムリスナー設定エラー:", error);
-
         }
-
       };
-
       
-
       // ローカルストレージに保存
-
       React.useEffect(() => {
-
         if (connectionMode === 'local') {
-
           try {
-
             localStorage.setItem('bathData', JSON.stringify({ checks, memo }));
-
             console.log("ローカルストレージ保存完了");
-
           } catch (error) {
-
             console.error("ローカルストレージ保存エラー:", error);
-
           }
-
         }
-
       }, [checks, memo, connectionMode]);
-
       
-
       // チェック状態を更新
-
       const updateCheck = (member) => {
-
         const newChecks = {...checks, [member]: !checks[member]};
-
         setChecks(newChecks);
-
         console.log(`${member}のチェック状態を更新: ${!checks[member]}`);
-
         
-
         if (connectionMode === 'firebase') {
-
           try {
-
             const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-
             firebase.database().ref(`bath-check/${dateStr}/checks`).set(newChecks)
-
               .then(() => console.log("Firebase更新成功"))
-
               .catch(error => {
-
                 console.error("Firebase更新エラー:", error);
-
                 // エラー時にローカルモードに切り替え
-
                 setConnectionMode('local');
-
                 setConnectionStatus(`更新エラー: ${error.message} - ローカルモードに切り替えました`);
-
               });
-
           } catch (error) {
-
             console.error("チェック更新エラー:", error);
-
           }
-
         }
-
       };
-
       
-
       // メモを更新
-
       const updateMemo = (text) => {
-
         setMemo(text);
-
         
-
         if (connectionMode === 'firebase') {
-
           try {
-
             const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-
             firebase.database().ref(`bath-check/${dateStr}/memo`).set(text)
-
               .catch(error => {
-
                 console.error("Firebaseメモ更新エラー:", error);
-
               });
-
           } catch (error) {
-
             console.error("メモ更新エラー:", error);
-
           }
-
         }
-
       };
-
       
-
       // 自動リセット機能（午前3時）
-
       React.useEffect(() => {
-
         const checkAndResetData = () => {
-
           const newDate = getCurrentDate();
-
           if (newDate.date !== currentDate.date) {
-
             console.log("日付変更検出:", currentDate.date, "→", newDate.date);
-
             setCurrentDate(newDate);
-
           }
-
         };
-
         
-
         // 初回チェック
-
         checkAndResetData();
-
         
-
         // 次の午前3時までの時間を計算
-
         const now = new Date();
-
         const resetTime = new Date();
-
         resetTime.setHours(3, 0, 0, 0);
-
         
-
         // すでに3時を過ぎていたら翌日の3時に設定
-
         if (now.getHours() >= 3) {
-
           resetTime.setDate(resetTime.getDate() + 1);
-
         }
-
         
-
         const timeUntilReset = resetTime - now;
-
         console.log("次回リセットまで:", Math.floor(timeUntilReset / 1000 / 60), "分");
-
         
-
         // タイマーセット
-
         const timer = setTimeout(() => {
-
           checkAndResetData();
-
           // 以降は24時間ごとにリセット
-
           const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);
-
           return () => clearInterval(dailyTimer);
-
         }, timeUntilReset);
-
         
-
         return () => clearTimeout(timer);
-
       }, [currentDate]);
-
       
-
       // チェック状態を評価
-
       const checkedCount = Object.values(checks).filter(c => c).length;
-
       const allChecked = checkedCount === familyMembers.length;
-
       const isLastPerson = checkedCount === familyMembers.length - 1;
-
       const noOneChecked = checkedCount === 0;
-
       
-
       // ステータスメッセージとスタイルを取得
-
       const getStatusInfo = () => {
-
         if (allChecked) {
-
           return {
-
             message: '全員お風呂に入りました！',
-
             style: 'bg-green-100 border-green-300'
-
           };
-
         } else if (isLastPerson) {
-
           return {
-
             message: 'あなたが最後です。お湯を抜いてください。',
-
             style: 'bg-yellow-100 border-yellow-300'
-
           };
-
         } else if (noOneChecked) {
-
           return {
-
             message: 'まだ誰もお風呂入っていません',
-
             style: 'bg-gray-100 border-gray-300'
-
           };
-
         } else {
-
           return {
-
-            message: 'まだお風呂入っていない人がいるから声かけて’,
-
+            message: 'まだお風呂入っていない家族がいます',
             style: 'bg-blue-100 border-blue-300'
-
           };
-
         }
-
       };
-
       
-
       // 再接続ボタン
-
       const handleReconnect = () => {
-
         window.location.reload();
-
       };
-
       
-
       const { message, style } = getStatusInfo();
-
       
-
       if (isLoading) {
-
         return (
-
           <div className="p-4 max-w-md mx-auto bg-blue-50 flex flex-col items-center justify-center h-screen">
-
             <p className="text-lg text-blue-700 mb-2">読み込み中...</p>
-
             <p className="text-sm text-gray-600">{connectionStatus}</p>
-
           </div>
-
         );
-
       }
-
       
-
       return (
-
         <div className="p-4 max-w-md mx-auto bg-blue-50">
-
           <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-
             <h1 className="text-xl text-center font-bold">お風呂掲示板</h1>
-
             <p className="text-center text-sm">{currentDate.date}</p>
-
             <p className="text-center text-sm mt-1">
-
               今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
-
             </p>
-
             {connectionMode === 'local' && (
-
               <div className="mt-1">
-
                 <p className="text-xs text-center bg-yellow-500 text-white p-1 rounded mb-1">ローカルモード (Firebaseに接続できません)</p>
-
                 <div className="flex justify-center">
-
                   <button 
-
                     className="text-xs px-2 py-1 bg-white text-blue-700 rounded hover:bg-blue-50"
-
                     onClick={handleReconnect}
-
                   >
-
                     再接続する
-
                   </button>
-
                 </div>
-
               </div>
-
             )}
-
           </div>
-
           
-
           <div className="bg-white p-4 rounded-b-lg shadow">
-
             {/* ステータス表示 */}
-
             <div className={`p-3 rounded mb-4 border ${style}`}>
-
               <p className="font-medium">{message}</p>
-
             </div>
-
             
-
             {/* お風呂チェック */}
-
             <div className="mb-4 p-3 border rounded bg-gray-50">
-
               <p className="font-medium mb-2">お風呂チェック</p>
-
               {familyMembers.map(member => (
-
                 <div 
-
                   key={member} 
-
                   className="flex items-center justify-between p-2 mb-2 border rounded cursor-pointer"
-
                   style={{ 
-
                     backgroundColor: checks[member] ? '#d1fae5' : 'white',
-
                     borderColor: checks[member] ? '#10b981' : '#e5e7eb'
-
                   }}
-
                   onClick={() => updateCheck(member)}
-
                 >
-
                   <span>{member}</span>
-
                   <span className="h-6 w-6 flex items-center justify-center border rounded-full" 
-
                     style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}>
-
                     {checks[member] && '✓'}
-
                   </span>
-
                 </div>
-
               ))}
-
             </div>
-
             
-
             {/* メモ */}
-
             <div className="p-3 border rounded bg-gray-50">
-
               <p className="font-medium mb-2">一言メモ</p>
-
               <textarea
-
                 className="w-full p-2 border rounded text-sm"
-
                 rows={2}
-
                 placeholder="メモを記入してください..."
-
                 value={memo}
-
                 onChange={(e) => updateMemo(e.target.value)}
-
               />
-
+              {memo && (
+                <div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300">
+                  「{memo}」
+                </div>
+              )}
             </div>
-
             
-
             {/* 接続モード表示（デバッグ用） */}
-
-            {/*
-
-               <div className="mt-4 text-xs text-gray-500 text-center">
-
+            <div className="mt-4 text-xs text-gray-500 text-center">
               接続モード: {connectionMode} | {connectionStatus}
-
             </div>
-
-            */}
-
           </div>
-
         </div>
-
       );
-
     };
-
-
 
     ReactDOM.render(<MinimalBathApp />, document.getElementById('root'));
-
   </script>
-
 </body>
-
 </html>
