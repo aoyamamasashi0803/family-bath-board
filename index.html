@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,15 +8,14 @@
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <!-- Firebase SDK (compatibility version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
   <div id="root"></div>
-  <!-- App.jsを直接インラインで記述します -->
   <script type="text/babel">
     // Firebase設定
     const firebaseConfig = {
@@ -32,7 +30,13 @@
     };
     
     // Firebaseの初期化
-    firebase.initializeApp(firebaseConfig);
+    try {
+      firebase.initializeApp(firebaseConfig);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase initialization error:", error);
+    }
+    
     const database = firebase.database();
     
     const MinimalBathApp = () => {
@@ -56,6 +60,7 @@
       );
       const [memo, setMemo] = React.useState('');
       const [isLoading, setIsLoading] = React.useState(true);
+      const [connectionError, setConnectionError] = React.useState(false);
       
       // 曜日ごとの当番
       const dutySchedule = {
@@ -63,49 +68,91 @@
         '金': 'カイ', '土': 'カイ', '日': 'ササ'
       };
       
-      // Firebaseからデータを取得する
+      // デバッグ: Firebase接続テスト
       React.useEffect(() => {
-        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-        const bathRef = database.ref(`bath-check/${todayKey}`);
-        
-        bathRef.on('value', (snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            // データが存在する場合はロード
-            setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
-            setMemo(data.memo || '');
+        const connectedRef = database.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+          if (snap.val() === true) {
+            console.log("Firebase接続成功");
           } else {
-            // データが存在しない場合は初期化して保存
-            const initialData = {
-              date: currentDate.date,
-              weekday: currentDate.weekday,
-              checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
-              memo: ''
-            };
-            bathRef.set(initialData);
+            console.log("Firebase未接続");
+            setConnectionError(true);
           }
-          setIsLoading(false);
         });
         
-        // クリーンアップ関数
         return () => {
-          bathRef.off();
+          connectedRef.off("value");
         };
+      }, []);
+      
+      // Firebaseからデータを取得する
+      React.useEffect(() => {
+        try {
+          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+          console.log("データ取得キー:", todayKey);
+          const bathRef = database.ref(`bath-check/${todayKey}`);
+          
+          bathRef.on('value', (snapshot) => {
+            console.log("Firebase: データ受信", snapshot.val());
+            const data = snapshot.val();
+            if (data) {
+              // データが存在する場合はロード
+              setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
+              setMemo(data.memo || '');
+            } else {
+              console.log("Firebase: 初期データ作成");
+              // データが存在しない場合は初期化して保存
+              const initialData = {
+                date: currentDate.date,
+                weekday: currentDate.weekday,
+                checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
+                memo: ''
+              };
+              bathRef.set(initialData);
+            }
+            setIsLoading(false);
+          });
+          
+          bathRef.on('error', (error) => {
+            console.error("Firebase読み込みエラー:", error);
+            setConnectionError(true);
+            setIsLoading(false);
+          });
+          
+          // クリーンアップ関数
+          return () => {
+            bathRef.off();
+          };
+        } catch (error) {
+          console.error("Firebase useEffect エラー:", error);
+          setConnectionError(true);
+          setIsLoading(false);
+        }
       }, [currentDate]);
       
       // チェック状態をFirebaseに保存
       const updateCheck = (member) => {
-        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-        const newChecks = {...checks, [member]: !checks[member]};
-        setChecks(newChecks);
-        database.ref(`bath-check/${todayKey}/checks`).set(newChecks);
+        try {
+          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+          const newChecks = {...checks, [member]: !checks[member]};
+          setChecks(newChecks);
+          console.log("チェック更新:", member, !checks[member]);
+          database.ref(`bath-check/${todayKey}/checks`).set(newChecks);
+        } catch (error) {
+          console.error("チェック更新エラー:", error);
+          alert("データの保存に失敗しました。ネットワーク接続を確認してください。");
+        }
       };
       
       // メモをFirebaseに保存
       const updateMemo = (text) => {
-        setMemo(text);
-        const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-        database.ref(`bath-check/${todayKey}/memo`).set(text);
+        try {
+          setMemo(text);
+          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
+          database.ref(`bath-check/${todayKey}/memo`).set(text);
+        } catch (error) {
+          console.error("メモ更新エラー:", error);
+        }
       };
       
       // 自動リセット機能（午前3時）
@@ -113,6 +160,7 @@
         const checkAndResetData = () => {
           const newDate = getCurrentDate();
           if (newDate.date !== currentDate.date) {
+            console.log("日付変更検出:", currentDate.date, "→", newDate.date);
             setCurrentDate(newDate);
           }
         };
@@ -131,6 +179,7 @@
         }
         
         const timeUntilReset = resetTime - now;
+        console.log("次回リセットまで:", Math.floor(timeUntilReset / 1000 / 60), "分");
         
         // タイマーセット
         const timer = setTimeout(() => {
@@ -180,6 +229,21 @@
         return (
           <div className="p-4 max-w-md mx-auto bg-blue-50 flex items-center justify-center h-screen">
             <p className="text-lg text-blue-700">読み込み中...</p>
+          </div>
+        );
+      }
+      
+      if (connectionError) {
+        return (
+          <div className="p-4 max-w-md mx-auto bg-red-50 flex flex-col items-center justify-center h-screen">
+            <p className="text-lg text-red-700 mb-4">Firebaseへの接続に失敗しました</p>
+            <p className="text-sm text-gray-700 mb-4">ローカルモードに切り替えます</p>
+            <button 
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => window.location.reload()}
+            >
+              再接続する
+            </button>
           </div>
         );
       }
