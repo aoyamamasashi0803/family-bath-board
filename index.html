@@ -1,459 +1,481 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>お風呂掲示板</title>
-  <!-- React, ReactDOM, Babel -->
-  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Firebase SDK (v8.x - より安定したバージョン) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; -webkit-text-stroke: #000000; min-height: 15.0px}
+    span.s1 {font-kerning: none}
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    // Firebase設定
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws",
-      authDomain: "family-bath-board.firebaseapp.com",
-      databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",
-      projectId: "family-bath-board",
-      storageBucket: "family-bath-board.firebasestorage.app",
-      messagingSenderId: "302137992718",
-      appId: "1:302137992718:web:6be7da1e5e4343a197be5f",
-      measurementId: "G-380QXLYTXP"
-    };
-    
-    // Firebase接続テスト
-    console.log("Firebase接続テスト開始");
-    
-    // Firebaseの初期化
-    let firebaseApp;
-    try {
-      if (!firebase.apps.length) {
-        firebaseApp = firebase.initializeApp(firebaseConfig);
-        console.log("Firebase初期化成功");
-      } else {
-        firebaseApp = firebase.app();
-        console.log("既存のFirebaseアプリを使用");
-      }
-    } catch (error) {
-      console.error("Firebase初期化エラー:", error);
-    }
-    
-    // Firebase接続テスト用関数
-    const testFirebaseConnection = async () => {
-      try {
-        // シンプルなテストデータの書き込み
-        const testRef = firebase.database().ref('connection-test');
-        await testRef.set({
-          timestamp: Date.now(),
-          message: "Connection test"
-        });
-        console.log("Firebaseテスト書き込み成功");
-        return true;
-      } catch (error) {
-        console.error("Firebaseテスト書き込みエラー:", error);
-        return false;
-      }
-    };
-    
-    const MinimalBathApp = () => {
-      const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];
-      
-      // 現在の日付を取得する関数
-      const getCurrentDate = () => {
-        const now = new Date();
-        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-        const weekday = weekdays[now.getDay()];
-        return {
-          date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,
-          weekday: weekday
-        };
-      };
-      
-      // ローカルストレージからのフォールバック
-      const getLocalData = () => {
-        try {
-          const storedData = localStorage.getItem('bathData');
-          if (storedData) {
-            return JSON.parse(storedData);
-          }
-        } catch (e) {
-          console.error("ローカルストレージ読み込みエラー:", e);
-        }
-        return {
-          checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
-          memo: ''
-        };
-      };
-      
-      // 状態管理
-      const [currentDate, setCurrentDate] = React.useState(getCurrentDate());
-      const [checks, setChecks] = React.useState(getLocalData().checks || {});
-      const [memo, setMemo] = React.useState(getLocalData().memo || '');
-      const [isLoading, setIsLoading] = React.useState(true);
-      const [connectionMode, setConnectionMode] = React.useState('checking');
-      const [connectionStatus, setConnectionStatus] = React.useState('初期化中...');
-      
-      // 曜日ごとの当番
-      const dutySchedule = {
-        '月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',
-        '金': 'カイ', '土': 'カイ', '日': 'ササ'
-      };
-      
-      // Firebase接続試行（10秒タイムアウトに延長）
-      React.useEffect(() => {
-        let timeoutId;
-        try {
-          console.log("Firebase接続試行開始");
-          setConnectionStatus("Firebase接続試行中...");
-          
-          // まず書き込みテストを実行
-          testFirebaseConnection().then(success => {
-            if (success) {
-              setConnectionMode('firebase');
-              setConnectionStatus("Firebase接続成功！");
-              initializeFirebaseData();
-              if (timeoutId) clearTimeout(timeoutId);
-            } else {
-              setConnectionMode('local');
-              setConnectionStatus("Firebaseへの書き込みに失敗");
-              setIsLoading(false);
-              if (timeoutId) clearTimeout(timeoutId);
-            }
-          });
-          
-          // 接続状態も監視
-          const connectRef = firebase.database().ref(".info/connected");
-          connectRef.on("value", (snap) => {
-            const connected = snap.val() === true;
-            console.log("Firebase接続状態:", connected ? "接続済み" : "未接続");
-            setConnectionStatus(connected ? "Firebase接続済み" : "Firebase未接続");
-            
-            if (connected && connectionMode === 'checking') {
-              // 接続されたがまだモード切り替えがない場合は少し待つ
-              console.log("Firebase接続検出、データロード待機中...");
-            }
-          });
-          
-          // 10秒後にタイムアウト
-          timeoutId = setTimeout(() => {
-            if (connectionMode === 'checking') {
-              console.log("Firebase接続タイムアウト - ローカルモードに切り替え");
-              setConnectionStatus("Firebase接続タイムアウト");
-              setConnectionMode('local');
-              setIsLoading(false);
-            }
-          }, 10000);
-          
-          return () => {
-            if (timeoutId) clearTimeout(timeoutId);
-            connectRef.off("value");
-          };
-        } catch (error) {
-          console.error("Firebase接続エラー:", error);
-          setConnectionStatus(`Firebase接続エラー: ${error.message}`);
-          setConnectionMode('local');
-          setIsLoading(false);
-          if (timeoutId) clearTimeout(timeoutId);
-        }
-      }, []);
-      
-      // Firebaseデータ初期化
-      const initializeFirebaseData = () => {
-        try {
-          console.log("Firebaseデータ初期化開始");
-          const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-          const bathRef = firebase.database().ref(`bath-check/${dateStr}`);
-          
-          bathRef.once("value").then((snapshot) => {
-            const data = snapshot.val();
-            console.log("Firebaseデータ取得:", data);
-            
-            if (data) {
-              console.log("既存データ使用");
-              setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
-              setMemo(data.memo || '');
-            } else {
-              console.log("新規データ作成");
-              const initialData = {
-                date: currentDate.date,
-                weekday: currentDate.weekday,
-                checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
-                memo: ''
-              };
-              bathRef.set(initialData)
-                .then(() => console.log("初期データ保存成功"))
-                .catch(err => console.error("初期データ保存エラー:", err));
-              
-              setChecks(initialData.checks);
-              setMemo(initialData.memo);
-            }
-            setIsLoading(false);
-            
-            // リアルタイム更新のリスナー設定
-            setupRealtimeListeners();
-          }).catch(error => {
-            console.error("Firebaseデータ取得エラー:", error);
-            setConnectionStatus(`データ取得エラー: ${error.message}`);
-            setConnectionMode('local');
-            setIsLoading(false);
-          });
-        } catch (error) {
-          console.error("Firebaseデータ初期化エラー:", error);
-          setConnectionStatus(`データ初期化エラー: ${error.message}`);
-          setConnectionMode('local');
-          setIsLoading(false);
-        }
-      };
-      
-      // リアルタイム更新リスナー
-      const setupRealtimeListeners = () => {
-        try {
-          console.log("リアルタイムリスナー設定");
-          const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-          const checksRef = firebase.database().ref(`bath-check/${dateStr}/checks`);
-          const memoRef = firebase.database().ref(`bath-check/${dateStr}/memo`);
-          
-          checksRef.on("value", (snapshot) => {
-            const data = snapshot.val();
-            console.log("リアルタイム更新 (checks):", data);
-            if (data) {
-              setChecks(data);
-            }
-          }, (error) => {
-            console.error("チェック更新監視エラー:", error);
-          });
-          
-          memoRef.on("value", (snapshot) => {
-            const data = snapshot.val();
-            console.log("リアルタイム更新 (memo):", data);
-            if (data !== null) {
-              setMemo(data);
-            }
-          }, (error) => {
-            console.error("メモ更新監視エラー:", error);
-          });
-        } catch (error) {
-          console.error("リアルタイムリスナー設定エラー:", error);
-        }
-      };
-      
-      // ローカルストレージに保存
-      React.useEffect(() => {
-        if (connectionMode === 'local') {
-          try {
-            localStorage.setItem('bathData', JSON.stringify({ checks, memo }));
-            console.log("ローカルストレージ保存完了");
-          } catch (error) {
-            console.error("ローカルストレージ保存エラー:", error);
-          }
-        }
-      }, [checks, memo, connectionMode]);
-      
-      // チェック状態を更新
-      const updateCheck = (member) => {
-        const newChecks = {...checks, [member]: !checks[member]};
-        setChecks(newChecks);
-        console.log(`${member}のチェック状態を更新: ${!checks[member]}`);
-        
-        if (connectionMode === 'firebase') {
-          try {
-            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-            firebase.database().ref(`bath-check/${dateStr}/checks`).set(newChecks)
-              .then(() => console.log("Firebase更新成功"))
-              .catch(error => {
-                console.error("Firebase更新エラー:", error);
-                // エラー時にローカルモードに切り替え
-                setConnectionMode('local');
-                setConnectionStatus(`更新エラー: ${error.message} - ローカルモードに切り替えました`);
-              });
-          } catch (error) {
-            console.error("チェック更新エラー:", error);
-          }
-        }
-      };
-      
-      // メモを更新
-      const updateMemo = (text) => {
-        setMemo(text);
-        
-        if (connectionMode === 'firebase') {
-          try {
-            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-            firebase.database().ref(`bath-check/${dateStr}/memo`).set(text)
-              .catch(error => {
-                console.error("Firebaseメモ更新エラー:", error);
-              });
-          } catch (error) {
-            console.error("メモ更新エラー:", error);
-          }
-        }
-      };
-      
-      // 自動リセット機能（午前3時）
-      React.useEffect(() => {
-        const checkAndResetData = () => {
-          const newDate = getCurrentDate();
-          if (newDate.date !== currentDate.date) {
-            console.log("日付変更検出:", currentDate.date, "→", newDate.date);
-            setCurrentDate(newDate);
-          }
-        };
-        
-        // 初回チェック
-        checkAndResetData();
-        
-        // 次の午前3時までの時間を計算
-        const now = new Date();
-        const resetTime = new Date();
-        resetTime.setHours(3, 0, 0, 0);
-        
-        // すでに3時を過ぎていたら翌日の3時に設定
-        if (now.getHours() >= 3) {
-          resetTime.setDate(resetTime.getDate() + 1);
-        }
-        
-        const timeUntilReset = resetTime - now;
-        console.log("次回リセットまで:", Math.floor(timeUntilReset / 1000 / 60), "分");
-        
-        // タイマーセット
-        const timer = setTimeout(() => {
-          checkAndResetData();
-          // 以降は24時間ごとにリセット
-          const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);
-          return () => clearInterval(dailyTimer);
-        }, timeUntilReset);
-        
-        return () => clearTimeout(timer);
-      }, [currentDate]);
-      
-      // チェック状態を評価
-      const checkedCount = Object.values(checks).filter(c => c).length;
-      const allChecked = checkedCount === familyMembers.length;
-      const isLastPerson = checkedCount === familyMembers.length - 1;
-      const noOneChecked = checkedCount === 0;
-      
-      // ステータスメッセージとスタイルを取得
-      const getStatusInfo = () => {
-        if (allChecked) {
-          return {
-            message: '全員お風呂に入りました！',
-            style: 'bg-green-100 border-green-300'
-          };
-        } else if (isLastPerson) {
-          return {
-            message: 'あなたが最後です。お湯を抜いてください。',
-            style: 'bg-yellow-100 border-yellow-300'
-          };
-        } else if (noOneChecked) {
-          return {
-            message: 'まだ誰もお風呂入っていません',
-            style: 'bg-gray-100 border-gray-300'
-          };
-        } else {
-          return {
-            message: 'まだお風呂入っていない家族がいます',
-            style: 'bg-blue-100 border-blue-300'
-          };
-        }
-      };
-      
-      // 再接続ボタン
-      const handleReconnect = () => {
-        window.location.reload();
-      };
-      
-      const { message, style } = getStatusInfo();
-      
-      if (isLoading) {
-        return (
-          <div className="p-4 max-w-md mx-auto bg-blue-50 flex flex-col items-center justify-center h-screen">
-            <p className="text-lg text-blue-700 mb-2">読み込み中...</p>
-            <p className="text-sm text-gray-600">{connectionStatus}</p>
-          </div>
-        );
-      }
-      
-      return (
-        <div className="p-4 max-w-md mx-auto bg-blue-50">
-          <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-            <h1 className="text-xl text-center font-bold">お風呂掲示板</h1>
-            <p className="text-center text-sm">{currentDate.date}</p>
-            <p className="text-center text-sm mt-1">
-              今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
-            </p>
-            {connectionMode === 'local' && (
-              <div className="mt-1">
-                <p className="text-xs text-center bg-yellow-500 text-white p-1 rounded mb-1">ローカルモード (Firebaseに接続できません)</p>
-                <div className="flex justify-center">
-                  <button 
-                    className="text-xs px-2 py-1 bg-white text-blue-700 rounded hover:bg-blue-50"
-                    onClick={handleReconnect}
-                  >
-                    再接続する
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="bg-white p-4 rounded-b-lg shadow">
-            {/* ステータス表示 */}
-            <div className={`p-3 rounded mb-4 border ${style}`}>
-              <p className="font-medium">{message}</p>
-            </div>
-            
-            {/* お風呂チェック */}
-            <div className="mb-4 p-3 border rounded bg-gray-50">
-              <p className="font-medium mb-2">お風呂チェック</p>
-              {familyMembers.map(member => (
-                <div 
-                  key={member} 
-                  className="flex items-center justify-between p-2 mb-2 border rounded cursor-pointer"
-                  style={{ 
-                    backgroundColor: checks[member] ? '#d1fae5' : 'white',
-                    borderColor: checks[member] ? '#10b981' : '#e5e7eb'
-                  }}
-                  onClick={() => updateCheck(member)}
-                >
-                  <span>{member}</span>
-                  <span className="h-6 w-6 flex items-center justify-center border rounded-full" 
-                    style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}>
-                    {checks[member] && '✓'}
-                  </span>
-                </div>
-              ))}
-            </div>
-            
-            {/* メモ */}
-            <div className="p-3 border rounded bg-gray-50">
-              <p className="font-medium mb-2">一言メモ</p>
-              <textarea
-                className="w-full p-2 border rounded text-sm"
-                rows={2}
-                placeholder="メモを記入してください..."
-                value={memo}
-                onChange={(e) => updateMemo(e.target.value)}
-              />
-            </div>
-            
-            {/* 接続モード表示（デバッグ用） */}
-            <div className="mt-4 text-xs text-gray-500 text-center">
-              接続モード: {connectionMode} | {connectionStatus}
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    ReactDOM.render(<MinimalBathApp />, document.getElementById('root'));
-  </script>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="ja"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;お風呂掲示板&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- React, ReactDOM, Babel --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react@17/umd/react.production.min.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- Firebase SDK (v8.x - より安定したバージョン) --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- Tailwind CSS --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="root"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script type="text/babel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase設定</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const firebaseConfig = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>apiKey: "AIzaSyD0RvcySORODJfhKwT_wRiBzjkfwzfNPws",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>authDomain: "family-bath-board.firebaseapp.com",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>databaseURL: "https://family-bath-board-default-rtdb.firebaseio.com",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>projectId: "family-bath-board",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>storageBucket: "family-bath-board.firebasestorage.app",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>messagingSenderId: "302137992718",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>appId: "1:302137992718:web:6be7da1e5e4343a197be5f",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>measurementId: "G-380QXLYTXP"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase接続テスト</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>console.log("Firebase接続テスト開始");</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebaseの初期化</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>let firebaseApp;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!firebase.apps.length) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>firebaseApp = firebase.initializeApp(firebaseConfig);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.log("Firebase初期化成功");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>firebaseApp = firebase.app();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.log("既存のFirebaseアプリを使用");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>console.error("Firebase初期化エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// Firebase接続テスト用関数</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const testFirebaseConnection = async () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// シンプルなテストデータの書き込み</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const testRef = firebase.database().ref('connection-test');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>await testRef.set({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>timestamp: Date.now(),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>message: "Connection test"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.log("Firebaseテスト書き込み成功");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.error("Firebaseテスト書き込みエラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const MinimalBathApp = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 現在の日付を取得する関数</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getCurrentDate = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekdays = ['日', '月', '火', '水', '木', '金', '土'];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const weekday = weekdays[now.getDay()];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>weekday: weekday</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ローカルストレージからのフォールバック</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getLocalData = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const storedData = localStorage.getItem('bathData');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (storedData) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return JSON.parse(storedData);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} catch (e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.error("ローカルストレージ読み込みエラー:", e);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>checks: familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>memo: ''</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 状態管理</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [currentDate, setCurrentDate] = React.useState(getCurrentDate());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [checks, setChecks] = React.useState(getLocalData().checks || {});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [memo, setMemo] = React.useState(getLocalData().memo || '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [isLoading, setIsLoading] = React.useState(true);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [connectionMode, setConnectionMode] = React.useState('checking');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const [connectionStatus, setConnectionStatus] = React.useState('初期化中...');</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 曜日ごとの当番</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const dutySchedule = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>'金': 'カイ', '土': 'カイ', '日': 'ササ'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// Firebase接続試行（10秒タイムアウトに延長）</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let timeoutId;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.log("Firebase接続試行開始");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setConnectionStatus("Firebase接続試行中...");</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// まず書き込みテストを実行</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>testFirebaseConnection().then(success =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (success) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionMode('firebase');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionStatus("Firebase接続成功！");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>initializeFirebaseData();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>if (timeoutId) clearTimeout(timeoutId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionStatus("Firebaseへの書き込みに失敗");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setIsLoading(false);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>if (timeoutId) clearTimeout(timeoutId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// 接続状態も監視</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const connectRef = firebase.database().ref(".info/connected");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>connectRef.on("value", (snap) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const connected = snap.val() === true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("Firebase接続状態:", connected ? "接続済み" : "未接続");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setConnectionStatus(connected ? "Firebase接続済み" : "Firebase未接続");</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (connected &amp;&amp; connectionMode === 'checking') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>// 接続されたがまだモード切り替えがない場合は少し待つ</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>console.log("Firebase接続検出、データロード待機中...");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// 10秒後にタイムアウト</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>timeoutId = setTimeout(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (connectionMode === 'checking') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>console.log("Firebase接続タイムアウト - ローカルモードに切り替え");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionStatus("Firebase接続タイムアウト");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setIsLoading(false);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}, 10000);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (timeoutId) clearTimeout(timeoutId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>connectRef.off("value");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.error("Firebase接続エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setConnectionStatus(`Firebase接続エラー: ${error.message}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setIsLoading(false);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (timeoutId) clearTimeout(timeoutId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, []);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// Firebaseデータ初期化</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const initializeFirebaseData = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.log("Firebaseデータ初期化開始");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const dateStr = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const bathRef = firebase.database().ref(`bath-check/${dateStr}`);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>bathRef.once("value").then((snapshot) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const data = snapshot.val();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("Firebaseデータ取得:", data);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (data) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>console.log("既存データ使用");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setChecks(data.checks || familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setMemo(data.memo || '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>console.log("新規データ作成");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>const initialData = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>date: currentDate.date,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>weekday: currentDate.weekday,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>checks: familyMembers.reduce((acc, member) =&gt; ({...acc, [member]: false}), {}),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>memo: ''</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>bathRef.set(initialData)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>.then(() =&gt; console.log("初期データ保存成功"))</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>.catch(err =&gt; console.error("初期データ保存エラー:", err));</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">              </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setChecks(initialData.checks);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setMemo(initialData.memo);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setIsLoading(false);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// リアルタイム更新のリスナー設定</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setupRealtimeListeners();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}).catch(error =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("Firebaseデータ取得エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setConnectionStatus(`データ取得エラー: ${error.message}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setIsLoading(false);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.error("Firebaseデータ初期化エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setConnectionStatus(`データ初期化エラー: ${error.message}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>setIsLoading(false);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// リアルタイム更新リスナー</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const setupRealtimeListeners = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.log("リアルタイムリスナー設定");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const dateStr = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const checksRef = firebase.database().ref(`bath-check/${dateStr}/checks`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const memoRef = firebase.database().ref(`bath-check/${dateStr}/memo`);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>checksRef.on("value", (snapshot) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const data = snapshot.val();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("リアルタイム更新 (checks):", data);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (data) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setChecks(data);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}, (error) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("チェック更新監視エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>memoRef.on("value", (snapshot) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const data = snapshot.val();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("リアルタイム更新 (memo):", data);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (data !== null) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>setMemo(data);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}, (error) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("メモ更新監視エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>console.error("リアルタイムリスナー設定エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ローカルストレージに保存</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (connectionMode === 'local') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>localStorage.setItem('bathData', JSON.stringify({ checks, memo }));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("ローカルストレージ保存完了");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("ローカルストレージ保存エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [checks, memo, connectionMode]);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態を更新</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateCheck = (member) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const newChecks = {...checks, [member]: !checks[member]};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setChecks(newChecks);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.log(`${member}のチェック状態を更新: ${!checks[member]}`);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (connectionMode === 'firebase') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dateStr = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>firebase.database().ref(`bath-check/${dateStr}/checks`).set(newChecks)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>.then(() =&gt; console.log("Firebase更新成功"))</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>.catch(error =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>console.error("Firebase更新エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// エラー時にローカルモードに切り替え</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>setConnectionMode('local');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>setConnectionStatus(`更新エラー: ${error.message} - ローカルモードに切り替えました`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("チェック更新エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// メモを更新</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const updateMemo = (text) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setMemo(text);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (connectionMode === 'firebase') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dateStr = currentDate.date.replace(/[年月日（）]/g, '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>firebase.database().ref(`bath-check/${dateStr}/memo`).set(text)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>.catch(error =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>console.error("Firebaseメモ更新エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.error("メモ更新エラー:", error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 自動リセット機能（午前3時）</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>React.useEffect(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const checkAndResetData = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const newDate = getCurrentDate();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (newDate.date !== currentDate.date) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>console.log("日付変更検出:", currentDate.date, "→", newDate.date);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>setCurrentDate(newDate);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 初回チェック</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>checkAndResetData();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// 次の午前3時までの時間を計算</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const now = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const resetTime = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>resetTime.setHours(3, 0, 0, 0);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// すでに3時を過ぎていたら翌日の3時に設定</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (now.getHours() &gt;= 3) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>resetTime.setDate(resetTime.getDate() + 1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timeUntilReset = resetTime - now;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>console.log("次回リセットまで:", Math.floor(timeUntilReset / 1000 / 60), "分");</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// タイマーセット</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const timer = setTimeout(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>checkAndResetData();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// 以降は24時間ごとにリセット</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const dailyTimer = setInterval(checkAndResetData, 24 * 60 * 60 * 1000);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return () =&gt; clearInterval(dailyTimer);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}, timeUntilReset);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return () =&gt; clearTimeout(timer);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}, [currentDate]);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// チェック状態を評価</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const checkedCount = Object.values(checks).filter(c =&gt; c).length;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const allChecked = checkedCount === familyMembers.length;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const isLastPerson = checkedCount === familyMembers.length - 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const noOneChecked = checkedCount === 0;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// ステータスメッセージとスタイルを取得</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const getStatusInfo = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (allChecked) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: '全員お風呂に入りました！',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-green-100 border-green-300'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (isLastPerson) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'あなたが最後です。お湯を抜いてください。',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-yellow-100 border-yellow-300'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else if (noOneChecked) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだ誰もお風呂入っていません',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-gray-100 border-gray-300'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>message: 'まだお風呂入っていない家族がいます',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>style: 'bg-blue-100 border-blue-300'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>// 再接続ボタン</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const handleReconnect = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>window.location.reload();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>};</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const { message, style } = getStatusInfo();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (isLoading) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>return (</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50 flex flex-col items-center justify-center h-screen"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-lg text-blue-700 mb-2"&gt;読み込み中...&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-sm text-gray-600"&gt;{connectionStatus}&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return (</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div className="p-4 max-w-md mx-auto bg-blue-50"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-blue-600 text-white p-4 rounded-t-lg"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1 className="text-xl text-center font-bold"&gt;お風呂掲示板&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm"&gt;{currentDate.date}&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p className="text-center text-sm mt-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>今日の風呂掃除当番: &lt;span className="font-bold"&gt;{dutySchedule[currentDate.weekday]}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{connectionMode === 'local' &amp;&amp; (</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;div className="mt-1"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;p className="text-xs text-center bg-yellow-500 text-white p-1 rounded mb-1"&gt;ローカルモード (Firebaseに接続できません)&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="flex justify-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;button<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>className="text-xs px-2 py-1 bg-white text-blue-700 rounded hover:bg-blue-50"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>onClick={handleReconnect}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>再接続する</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>)}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">          </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div className="bg-white p-4 rounded-b-lg shadow"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* ステータス表示 */}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className={`p-3 rounded mb-4 border ${style}`}&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium"&gt;{message}&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* お風呂チェック */}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="mb-4 p-3 border rounded bg-gray-50"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;お風呂チェック&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{familyMembers.map(member =&gt; (</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>key={member}<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>className="flex items-center justify-between p-2 mb-2 border rounded cursor-pointer"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>style={{<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>backgroundColor: checks[member] ? '#d1fae5' : 'white',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>borderColor: checks[member] ? '#10b981' : '#e5e7eb'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>}}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>onClick={() =&gt; updateCheck(member)}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span&gt;{member}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;span className="h-6 w-6 flex items-center justify-center border rounded-full"<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>style={{ backgroundColor: checks[member] ? '#10b981' : 'white', color: 'white' }}&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>{checks[member] &amp;&amp; '✓'}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>))}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* メモ */}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="p-3 border rounded bg-gray-50"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;p className="font-medium mb-2"&gt;一言メモ&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;textarea</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>className="w-full p-2 border rounded text-sm"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>rows={2}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>placeholder="メモを記入してください..."</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>value={memo}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>onChange={(e) =&gt; updateMemo(e.target.value)}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>/&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>{memo &amp;&amp; (</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>「{memo}」</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>)}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>{/* 接続モード表示（デバッグ用） */}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div className="mt-4 text-xs text-gray-500 text-center"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>接続モード: {connectionMode} | {connectionStatus}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>ReactDOM.render(&lt;MinimalBathApp /&gt;, document.getElementById('root'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
 </body>
 </html>
