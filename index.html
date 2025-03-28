@@ -8,9 +8,9 @@
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Firebase SDK (compatibility version) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <!-- Firebase SDK (v8.x - より安定したバージョン) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
@@ -31,13 +31,13 @@
     
     // Firebaseの初期化
     try {
-      firebase.initializeApp(firebaseConfig);
-      console.log("Firebase initialized successfully");
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase initialized successfully");
+      }
     } catch (error) {
       console.error("Firebase initialization error:", error);
     }
-    
-    const database = firebase.database();
     
     const MinimalBathApp = () => {
       const familyMembers = ['お父さん', 'お母さん', 'カイ', 'ササ'];
@@ -53,14 +53,24 @@
         };
       };
       
+      // ローカルストレージからのフォールバック
+      const getLocalData = () => {
+        const storedData = localStorage.getItem('bathData');
+        if (storedData) {
+          return JSON.parse(storedData);
+        }
+        return {
+          checks: familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}),
+          memo: ''
+        };
+      };
+      
       // 状態管理
       const [currentDate, setCurrentDate] = React.useState(getCurrentDate());
-      const [checks, setChecks] = React.useState(
-        familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {})
-      );
-      const [memo, setMemo] = React.useState('');
+      const [checks, setChecks] = React.useState(getLocalData().checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
+      const [memo, setMemo] = React.useState(getLocalData().memo || '');
       const [isLoading, setIsLoading] = React.useState(true);
-      const [connectionError, setConnectionError] = React.useState(false);
+      const [connectionMode, setConnectionMode] = React.useState('checking'); // 'checking', 'firebase', 'local'
       
       // 曜日ごとの当番
       const dutySchedule = {
@@ -68,40 +78,55 @@
         '金': 'カイ', '土': 'カイ', '日': 'ササ'
       };
       
-      // デバッグ: Firebase接続テスト
-      React.useEffect(() => {
-        const connectedRef = database.ref(".info/connected");
-        connectedRef.on("value", (snap) => {
-          if (snap.val() === true) {
-            console.log("Firebase接続成功");
-          } else {
-            console.log("Firebase未接続");
-            setConnectionError(true);
-          }
-        });
-        
-        return () => {
-          connectedRef.off("value");
-        };
-      }, []);
-      
-      // Firebaseからデータを取得する
+      // Firebase接続試行
       React.useEffect(() => {
         try {
-          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-          console.log("データ取得キー:", todayKey);
-          const bathRef = database.ref(`bath-check/${todayKey}`);
+          const connectRef = firebase.database().ref(".info/connected");
+          connectRef.on("value", (snap) => {
+            const connected = snap.val() === true;
+            console.log("Firebase connection:", connected ? "Connected" : "Disconnected");
+            
+            if (connected) {
+              setConnectionMode('firebase');
+              initializeFirebaseData();
+            } else {
+              // 3秒後もまだ接続されていなければローカルモードに切り替え
+              setTimeout(() => {
+                if (connectionMode === 'checking') {
+                  console.log("Firebase connection timeout - switching to local mode");
+                  setConnectionMode('local');
+                  setIsLoading(false);
+                }
+              }, 3000);
+            }
+          });
           
-          bathRef.on('value', (snapshot) => {
-            console.log("Firebase: データ受信", snapshot.val());
+          return () => {
+            connectRef.off("value");
+          };
+        } catch (error) {
+          console.error("Firebase connection error:", error);
+          setConnectionMode('local');
+          setIsLoading(false);
+        }
+      }, []);
+      
+      // Firebaseデータ初期化
+      const initializeFirebaseData = () => {
+        try {
+          const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
+          const bathRef = firebase.database().ref(`bath-check/${dateStr}`);
+          
+          bathRef.once("value").then((snapshot) => {
             const data = snapshot.val();
+            console.log("Firebase data:", data);
+            
             if (data) {
-              // データが存在する場合はロード
+              // 既存データがあればロード
               setChecks(data.checks || familyMembers.reduce((acc, member) => ({...acc, [member]: false}), {}));
               setMemo(data.memo || '');
             } else {
-              console.log("Firebase: 初期データ作成");
-              // データが存在しない場合は初期化して保存
+              // 初期データ作成
               const initialData = {
                 date: currentDate.date,
                 weekday: currentDate.weekday,
@@ -111,47 +136,75 @@
               bathRef.set(initialData);
             }
             setIsLoading(false);
-          });
-          
-          bathRef.on('error', (error) => {
-            console.error("Firebase読み込みエラー:", error);
-            setConnectionError(true);
+            
+            // リアルタイム更新のリスナー設定
+            setupRealtimeListeners();
+          }).catch(error => {
+            console.error("Firebase data loading error:", error);
+            setConnectionMode('local');
             setIsLoading(false);
           });
-          
-          // クリーンアップ関数
-          return () => {
-            bathRef.off();
-          };
         } catch (error) {
-          console.error("Firebase useEffect エラー:", error);
-          setConnectionError(true);
+          console.error("Firebase init error:", error);
+          setConnectionMode('local');
           setIsLoading(false);
-        }
-      }, [currentDate]);
-      
-      // チェック状態をFirebaseに保存
-      const updateCheck = (member) => {
-        try {
-          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-          const newChecks = {...checks, [member]: !checks[member]};
-          setChecks(newChecks);
-          console.log("チェック更新:", member, !checks[member]);
-          database.ref(`bath-check/${todayKey}/checks`).set(newChecks);
-        } catch (error) {
-          console.error("チェック更新エラー:", error);
-          alert("データの保存に失敗しました。ネットワーク接続を確認してください。");
         }
       };
       
-      // メモをFirebaseに保存
+      // リアルタイム更新リスナー
+      const setupRealtimeListeners = () => {
+        const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
+        const checksRef = firebase.database().ref(`bath-check/${dateStr}/checks`);
+        const memoRef = firebase.database().ref(`bath-check/${dateStr}/memo`);
+        
+        checksRef.on("value", (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            setChecks(data);
+          }
+        });
+        
+        memoRef.on("value", (snapshot) => {
+          const data = snapshot.val();
+          if (data !== null) {
+            setMemo(data);
+          }
+        });
+      };
+      
+      // ローカルストレージに保存
+      React.useEffect(() => {
+        if (connectionMode === 'local') {
+          localStorage.setItem('bathData', JSON.stringify({ checks, memo }));
+        }
+      }, [checks, memo, connectionMode]);
+      
+      // チェック状態を更新
+      const updateCheck = (member) => {
+        const newChecks = {...checks, [member]: !checks[member]};
+        setChecks(newChecks);
+        
+        if (connectionMode === 'firebase') {
+          try {
+            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
+            firebase.database().ref(`bath-check/${dateStr}/checks`).set(newChecks);
+          } catch (error) {
+            console.error("Firebase update error:", error);
+          }
+        }
+      };
+      
+      // メモを更新
       const updateMemo = (text) => {
-        try {
-          setMemo(text);
-          const todayKey = currentDate.date.replace(/[年月日（）]/g, '');
-          database.ref(`bath-check/${todayKey}/memo`).set(text);
-        } catch (error) {
-          console.error("メモ更新エラー:", error);
+        setMemo(text);
+        
+        if (connectionMode === 'firebase') {
+          try {
+            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
+            firebase.database().ref(`bath-check/${dateStr}/memo`).set(text);
+          } catch (error) {
+            console.error("Firebase memo update error:", error);
+          }
         }
       };
       
@@ -233,21 +286,6 @@
         );
       }
       
-      if (connectionError) {
-        return (
-          <div className="p-4 max-w-md mx-auto bg-red-50 flex flex-col items-center justify-center h-screen">
-            <p className="text-lg text-red-700 mb-4">Firebaseへの接続に失敗しました</p>
-            <p className="text-sm text-gray-700 mb-4">ローカルモードに切り替えます</p>
-            <button 
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => window.location.reload()}
-            >
-              再接続する
-            </button>
-          </div>
-        );
-      }
-      
       return (
         <div className="p-4 max-w-md mx-auto bg-blue-50">
           <div className="bg-blue-600 text-white p-4 rounded-t-lg">
@@ -256,6 +294,9 @@
             <p className="text-center text-sm mt-1">
               今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
             </p>
+            {connectionMode === 'local' && (
+              <p className="text-xs text-center mt-1 bg-yellow-500 text-white p-1 rounded">ローカルモード (Firebaseに接続できません)</p>
+            )}
           </div>
           
           <div className="bg-white p-4 rounded-b-lg shadow">
