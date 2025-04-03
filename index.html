@@ -333,6 +333,29 @@
         
         return () => clearTimeout(timer);
       }, [currentDate]);
+
+      // 定期的に日付を確認して更新する
+      React.useEffect(() => {
+        // 現在の日付と時刻を確認する関数
+        const checkCurrentDateTime = () => {
+          const newDate = getCurrentDate();
+          
+          // 日付が変わっていたら更新
+          if (newDate.date !== currentDate.date) {
+            console.log("日付が変更されました:", currentDate.date, "→", newDate.date);
+            setCurrentDate(newDate);
+          }
+        };
+        
+        // 最初に一度実行
+        checkCurrentDateTime();
+        
+        // 1分ごとに日付を確認（短すぎるとパフォーマンスに影響するため）
+        const intervalId = setInterval(checkCurrentDateTime, 60 * 1000);
+        
+        // クリーンアップ関数
+        return () => clearInterval(intervalId);
+      }, [currentDate]);
       
       // チェック状態を評価
       const checkedCount = Object.values(checks).filter(c => c).length;
