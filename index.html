@@ -101,6 +101,11 @@
       const [connectionMode, setConnectionMode] = React.useState('checking');
       const [connectionStatus, setConnectionStatus] = React.useState('初期化中...');
       
+      // 履歴関連の状態を追加
+      const [showHistory, setShowHistory] = React.useState(false);
+      const [historyData, setHistoryData] = React.useState([]);
+      const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
+      
       // 曜日ごとの当番
       const dutySchedule = {
         '月': 'カイ', '火': 'ササ', '水': 'ササ', '木': 'ササ',
@@ -297,6 +302,68 @@
         }
       };
       
+      // 履歴を取得する関数
+      const fetchHistory = async () => {
+        if (connectionMode !== 'firebase') {
+          alert('履歴の取得にはFirebase接続が必要です。インターネット接続を確認してください。');
+          return;
+        }
+        
+        try {
+          setIsLoadingHistory(true);
+          
+          // 最近の30日分のデータを取得する範囲を設定
+          const endDate = new Date();
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30);
+          
+          // 日付の範囲を文字列配列に変換（YYYYMMDD形式）
+          const dateRange = [];
+          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            dateRange.push(`${year}${month}${day}`);
+          }
+          
+          console.log("履歴取得対象日付:", dateRange);
+          
+          // 各日付のデータを取得
+          const historyEntries = [];
+          for (const dateKey of dateRange) {
+            const snapshot = await firebase.database().ref(`bath-check/${dateKey}`).once('value');
+            const data = snapshot.val();
+            if (data) {
+              historyEntries.push(data);
+            }
+          }
+          
+          console.log("取得した履歴データ:", historyEntries);
+          
+          // 日付の新しい順にソート
+          historyEntries.sort((a, b) => {
+            const dateA = new Date(a.date.replace(/[年月日（）]/g, '/').replace('/', '-').replace('/', '-'));
+            const dateB = new Date(b.date.replace(/[年月日（）]/g, '/').replace('/', '-').replace('/', '-'));
+            return dateB - dateA;
+          });
+          
+          setHistoryData(historyEntries);
+        } catch (error) {
+          console.error("履歴の取得に失敗しました:", error);
+          alert(`履歴の取得に失敗しました: ${error.message}`);
+        } finally {
+          setIsLoadingHistory(false);
+        }
+      };
+      
+      // 履歴表示ボタンがクリックされたときの処理
+      const handleShowHistory = () => {
+        if (!showHistory && historyData.length === 0) {
+          fetchHistory();
+        }
+        setShowHistory(!showHistory);
+      };
+      
       // 自動リセット機能（午前3時）
       React.useEffect(() => {
         const checkAndResetData = () => {
@@ -333,7 +400,7 @@
         
         return () => clearTimeout(timer);
       }, [currentDate]);
-
+      
       // 定期的に日付を確認して更新する
       React.useEffect(() => {
         // 現在の日付と時刻を確認する関数
@@ -382,7 +449,7 @@
           };
         } else {
           return {
-            message: 'まだお風呂入っていない家族がいます',
+            message: 'まだお風呂入っていない人がいるから声かけて',
             style: 'bg-blue-100 border-blue-300'
           };
         }
@@ -465,21 +532,68 @@
                 value={memo}
                 onChange={(e) => updateMemo(e.target.value)}
               />
-              {/* 以下の黄色いラベル表示部分を削除 
-              {memo && (
-                <div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300">
-                  「{memo}」
-                </div>
-              )}
-              */}
             </div>
+            
+            {/* 履歴表示ボタン */}
+            <div className="mt-4">
+              <button
+                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                onClick={handleShowHistory}
+                disabled={connectionMode !== 'firebase'}
+              >
+                {showHistory ? '履歴を閉じる' : '過去の履歴を表示'}
+              </button>
+            </div>
+            
+            {/* 履歴表示エリア */}
+            {showHistory && (
+              <div className="mt-4 p-4 bg-white rounded-lg shadow border">
+                <h2 className="text-lg font-bold mb-3">過去の履歴</h2>
+                
+                {isLoadingHistory ? (
+                  <div className="flex justify-center p-4">
+                    <p>履歴を読み込み中...</p>
+                  </div>
+                ) : historyData.length === 0 ? (
+                  <p className="text-gray-500 text-center">履歴がありません</p>
+                ) : (
+                  <div className="space-y-4">
+                    {historyData.map((entry, index) => (
+                      <div key={index} className="p-3 border rounded-lg bg-gray-50">
+                        <p className="font-medium">{entry.date}</p>
+                        <div className="mt-2">
+                          {familyMembers.map(member => (
+                            <div key={member} className="flex items-center mt-1">
+                              <div 
+                                className="w-4 h-4 rounded-full mr-2"
+                                style={{
+                                  backgroundColor: entry.checks && entry.checks[member] ? '#10b981' : '#ef4444',
+                                }}
+                              ></div>
+                              <span className="text-sm">
+                                {member}: {entry.checks && entry.checks[member] ? 'お風呂に入りました' : '入っていません'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        {entry.memo && (
+                          <div className="mt-2 p-2 bg-yellow-50 rounded text-sm border-l-2 border-yellow-300">
+                            メモ: {entry.memo}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* 接続モード表示（デバッグ用） */}
             {/* 
-              <div className="mt-4 text-xs text-gray-500 text-center">
+            <div className="mt-4 text-xs text-gray-500 text-center">
               接続モード: {connectionMode} | {connectionStatus}
             </div>
-             */}
+            */}
           </div>
         </div>
       );
