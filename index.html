@@ -73,7 +73,9 @@
         const weekday = weekdays[now.getDay()];
         return {
           date: `${now.getFullYear()}年${(now.getMonth() + 1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日（${weekday}）`,
-          weekday: weekday
+          weekday: weekday,
+          // 修正: 日付のキーフォーマットを統一 (YYYYMMDDのみ、曜日サフィックスなし)
+          dateKey: `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`
         };
       };
       
@@ -174,8 +176,11 @@
       const initializeFirebaseData = () => {
         try {
           console.log("Firebaseデータ初期化開始");
-          const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-          const bathRef = firebase.database().ref(`bath-check/${dateStr}`);
+          // 修正: 統一されたdateKey形式を使用
+          const dateKey = currentDate.dateKey;
+          console.log("使用するデータキー:", dateKey);
+          
+          const bathRef = firebase.database().ref(`bath-check/${dateKey}`);
           
           bathRef.once("value").then((snapshot) => {
             const data = snapshot.val();
@@ -222,9 +227,10 @@
       const setupRealtimeListeners = () => {
         try {
           console.log("リアルタイムリスナー設定");
-          const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-          const checksRef = firebase.database().ref(`bath-check/${dateStr}/checks`);
-          const memoRef = firebase.database().ref(`bath-check/${dateStr}/memo`);
+          // 修正: 統一されたdateKey形式を使用
+          const dateKey = currentDate.dateKey;
+          const checksRef = firebase.database().ref(`bath-check/${dateKey}/checks`);
+          const memoRef = firebase.database().ref(`bath-check/${dateKey}/memo`);
           
           checksRef.on("value", (snapshot) => {
             const data = snapshot.val();
@@ -270,8 +276,9 @@
         
         if (connectionMode === 'firebase') {
           try {
-            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-            firebase.database().ref(`bath-check/${dateStr}/checks`).set(newChecks)
+            // 修正: 統一されたdateKey形式を使用
+            const dateKey = currentDate.dateKey;
+            firebase.database().ref(`bath-check/${dateKey}/checks`).set(newChecks)
               .then(() => console.log("Firebase更新成功"))
               .catch(error => {
                 console.error("Firebase更新エラー:", error);
@@ -291,8 +298,9 @@
         
         if (connectionMode === 'firebase') {
           try {
-            const dateStr = currentDate.date.replace(/[年月日（）]/g, '');
-            firebase.database().ref(`bath-check/${dateStr}/memo`).set(text)
+            // 修正: 統一されたdateKey形式を使用
+            const dateKey = currentDate.dateKey;
+            firebase.database().ref(`bath-check/${dateKey}/memo`).set(text)
               .catch(error => {
                 console.error("Firebaseメモ更新エラー:", error);
               });
@@ -328,13 +336,18 @@
           
           console.log("履歴取得対象日付:", dateRange);
           
-          // 各日付のデータを取得
+          // データを取得
+          const bathRef = firebase.database().ref('bath-check');
+          const snapshot = await bathRef.once('value');
+          const allData = snapshot.val() || {};
+          
+          // 日付キーが曜日付きのデータも含めて検索できるように変換
           const historyEntries = [];
-          for (const dateKey of dateRange) {
-            const snapshot = await firebase.database().ref(`bath-check/${dateKey}`).once('value');
-            const data = snapshot.val();
-            if (data) {
-              historyEntries.push(data);
+          for (const dateKey in allData) {
+            // YYYYMMDD部分のみを抽出（曜日サフィックスがある場合は除外）
+            const baseKey = dateKey.substring(0, 8);
+            if (dateRange.includes(baseKey)) {
+              historyEntries.push(allData[dateKey]);
             }
           }
           
@@ -479,6 +492,7 @@
             <p className="text-center text-sm mt-1">
               今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
             </p>
+            <p className="text-xs text-center mt-1 bg-blue-700 py-1 px-2 rounded">データキー: {currentDate.dateKey}</p>
             {connectionMode === 'local' && (
               <div className="mt-1">
                 <p className="text-xs text-center bg-yellow-500 text-white p-1 rounded mb-1">ローカルモード (Firebaseに接続できません)</p>
@@ -588,12 +602,10 @@
               </div>
             )}
             
-            {/* 接続モード表示（デバッグ用） */}
-            {/* 
-            <div className="mt-4 text-xs text-gray-500 text-center">
+            {/* デバッグ情報 */}
+            <div className="mt-4 text-xs text-gray-500 text-center bg-gray-100 p-2 rounded">
               接続モード: {connectionMode} | {connectionStatus}
             </div>
-            */}
           </div>
         </div>
       );
