@@ -492,7 +492,9 @@
             <p className="text-center text-sm mt-1">
               今日の風呂掃除当番: <span className="font-bold">{dutySchedule[currentDate.weekday]}</span>
             </p>
+            <!-- 
             <p className="text-xs text-center mt-1 bg-blue-700 py-1 px-2 rounded">データキー: {currentDate.dateKey}</p>
+            -->
             {connectionMode === 'local' && (
               <div className="mt-1">
                 <p className="text-xs text-center bg-yellow-500 text-white p-1 rounded mb-1">ローカルモード (Firebaseに接続できません)</p>
